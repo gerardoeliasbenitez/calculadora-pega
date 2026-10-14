@@ -48,7 +48,7 @@
 <body class="font-sans antialiased p-4 sm:p-6 min-h-screen">
 
   <div class="max-w-4xl mx-auto space-y-6">
-    
+
     <!-- Encabezado -->
     <header class="flex justify-between items-center bg-white/80 dark:bg-slate-800/90 border border-indigo-100 dark:border-slate-700 p-4 rounded-2xl shadow-sm backdrop-blur-md">
       <div class="flex items-center gap-3">
@@ -60,7 +60,7 @@
           <p class="text-xs text-indigo-500 dark:text-slate-400">Impresión & Cotizaciones</p>
         </div>
       </div>
-      
+
       <div class="flex items-center gap-2">
         <button type="button" id="btn-theme-toggle" title="Cambiar Tema Claro/Oscuro" class="p-2.5 bg-indigo-50 dark:bg-slate-700 hover:bg-indigo-100 dark:hover:bg-slate-600 border border-indigo-200 dark:border-slate-600 text-indigo-600 dark:text-amber-400 rounded-xl transition shadow-sm flex items-center justify-center">
           <i id="theme-icon" data-lucide="sun" class="w-5 h-5"></i>
@@ -74,13 +74,13 @@
 
     <!-- Formulario: Datos de Cotización -->
     <form id="form-cotizacion" class="bg-white/80 dark:bg-slate-800/90 border border-indigo-100 dark:border-slate-700 p-5 sm:p-6 rounded-2xl shadow-sm space-y-4 backdrop-blur-md">
-      
+
       <div class="flex items-center justify-between border-b border-indigo-100 dark:border-slate-700 pb-2">
         <div class="flex items-center gap-2 text-indigo-700 dark:text-indigo-400 font-semibold text-sm tracking-wider uppercase">
           <i data-lucide="folder-plus" class="w-4 h-4"></i>
           <span>Datos de la Cotización</span>
         </div>
-        
+
         <div class="bg-indigo-100/70 dark:bg-slate-900 border border-indigo-200 dark:border-indigo-500/30 px-3 py-1 rounded-xl flex items-center gap-1.5">
           <span class="text-[11px] font-semibold text-indigo-600 dark:text-indigo-300">N° de Cotización:</span>
           <span id="numero-cotizacion-display" class="font-mono text-xs font-bold text-indigo-900 dark:text-indigo-200">COTZ-000001</span>
@@ -155,26 +155,33 @@
 
     <!-- Área de Resultados Uniforme -->
     <section class="bg-white/80 dark:bg-slate-800/90 border border-indigo-100 dark:border-slate-700 p-4 sm:p-5 rounded-2xl shadow-sm space-y-3 backdrop-blur-md">
-      
+
       <div class="flex flex-wrap justify-between items-center gap-2 border-b border-indigo-100 dark:border-slate-700 pb-2.5">
         <div class="flex items-center gap-2 text-indigo-700 dark:text-indigo-400 font-semibold text-sm tracking-wider uppercase">
           <i data-lucide="calculator" class="w-4 h-4"></i>
           <span>Resultados</span>
         </div>
 
-        <div class="bg-slate-900 border border-slate-700/80 px-2.5 py-1 rounded-xl flex items-center gap-2 text-[11px] shadow-inner">
-          <span class="text-slate-400 font-semibold">Tasas BCV:</span>
-          <div class="flex items-center gap-2 font-mono font-bold">
-            <span id="tasa-bcv-usd" class="text-emerald-400">$: --</span>
-            <span id="tasa-bcv-eur" class="text-indigo-400">€: --</span>
-            <span id="variacion-usd-eur" class="text-[10px]"></span>
+        <div class="flex items-center gap-2">
+          <!-- Botón de Calculadora Redondo con signos +-x/ -->
+          <button type="button" id="btn-abrir-calculadora" title="Calculadora Auxiliar" class="w-9 h-9 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full shadow-md transition flex items-center justify-center font-bold text-xs ring-2 ring-indigo-400/30">
+            +-×÷
+          </button>
+
+          <div class="bg-slate-900 border border-slate-700/80 px-2.5 py-1 rounded-xl flex items-center gap-2 text-[11px] shadow-inner">
+            <span class="text-slate-400 font-semibold">Tasas BCV:</span>
+            <div class="flex items-center gap-2 font-mono font-bold">
+              <span id="tasa-bcv-usd" class="text-emerald-400">$: --</span>
+              <span id="tasa-bcv-eur" class="text-indigo-400">€: --</span>
+              <span id="variacion-usd-eur" class="text-[10px]"></span>
+            </div>
           </div>
         </div>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-        
-        <div id="box-metros-cuadrados" class="bg-black border border-slate-800 p-3 rounded-xl shadow-inner text-white sm:col-span-2 w-4/5 mx-auto text-center">
+
+        <div id="box-metros-cuadrados" class="bg-black border border-slate-800 p-3 rounded-xl shadow-inner text-white sm:col-span-2 text-center">
           <span class="block text-[12px] font-medium text-slate-400 uppercase tracking-tight">Metros Cuadrados (m²)</span>
           <span id="res-metros-cuadrados" class="text-xl font-bold text-emerald-400 font-mono">0,00 m²</span>
         </div>
@@ -257,6 +264,46 @@
       </div>
     </section>
 
+  </div>
+
+  <!-- Modal de Calculadora Básica Flotante -->
+  <div id="modal-calculadora" class="fixed inset-0 bg-black/40 backdrop-blur-[2px] z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900/95 border border-slate-700 rounded-2xl w-full max-w-xs p-4 shadow-2xl space-y-3 backdrop-blur-md">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+        <span class="text-xs font-bold text-indigo-400 uppercase tracking-wider flex items-center gap-1.5">
+          <i data-lucide="calculator" class="w-3.5 h-3.5"></i> Calculadora Auxiliar
+        </span>
+        <button type="button" id="btn-cerrar-calculadora" class="text-slate-400 hover:text-white text-sm font-bold px-2 py-1 rounded-lg">✕</button>
+      </div>
+      <div>
+        <input type="text" id="calc-display" readonly class="w-full bg-black border border-slate-800 rounded-xl px-3 py-2.5 text-right font-mono text-xl text-emerald-400 tracking-wider" value="0">
+      </div>
+      <div class="grid grid-cols-4 gap-1.5 text-sm font-semibold">
+        <button type="button" data-val="C" class="calc-btn bg-rose-600/80 hover:bg-rose-600 text-white p-2 rounded-xl">C</button>
+        <button type="button" data-val="(" class="calc-btn bg-slate-800 hover:bg-slate-700 text-slate-300 p-2 rounded-xl">(</button>
+        <button type="button" data-val=")" class="calc-btn bg-slate-800 hover:bg-slate-700 text-slate-300 p-2 rounded-xl">)</button>
+        <button type="button" data-val="/" class="calc-btn bg-indigo-600 hover:bg-indigo-700 text-white p-2 rounded-xl">÷</button>
+        
+        <button type="button" data-val="7" class="calc-btn bg-slate-800 hover:bg-slate-700 text-white p-2.5 rounded-xl">7</button>
+        <button type="button" data-val="8" class="calc-btn bg-slate-800 hover:bg-slate-700 text-white p-2.5 rounded-xl">8</button>
+        <button type="button" data-val="9" class="calc-btn bg-slate-800 hover:bg-slate-700 text-white p-2.5 rounded-xl">9</button>
+        <button type="button" data-val="*" class="calc-btn bg-indigo-600 hover:bg-indigo-700 text-white p-2.5 rounded-xl">×</button>
+        
+        <button type="button" data-val="4" class="calc-btn bg-slate-800 hover:bg-slate-700 text-white p-2.5 rounded-xl">4</button>
+        <button type="button" data-val="5" class="calc-btn bg-slate-800 hover:bg-slate-700 text-white p-2.5 rounded-xl">5</button>
+        <button type="button" data-val="6" class="calc-btn bg-slate-800 hover:bg-slate-700 text-white p-2.5 rounded-xl">6</button>
+        <button type="button" data-val="-" class="calc-btn bg-indigo-600 hover:bg-indigo-700 text-white p-2.5 rounded-xl">-</button>
+        
+        <button type="button" data-val="1" class="calc-btn bg-slate-800 hover:bg-slate-700 text-white p-2.5 rounded-xl">1</button>
+        <button type="button" data-val="2" class="calc-btn bg-slate-800 hover:bg-slate-700 text-white p-2.5 rounded-xl">2</button>
+        <button type="button" data-val="3" class="calc-btn bg-slate-800 hover:bg-slate-700 text-white p-2.5 rounded-xl">3</button>
+        <button type="button" data-val="+" class="calc-btn bg-indigo-600 hover:bg-indigo-700 text-white p-2.5 rounded-xl">+</button>
+        
+        <button type="button" data-val="0" class="calc-btn bg-slate-800 hover:bg-slate-700 text-white p-2.5 rounded-xl col-span-2">0</button>
+        <button type="button" data-val="." class="calc-btn bg-slate-800 hover:bg-slate-700 text-white p-2.5 rounded-xl">.</button>
+        <button type="button" data-val="=" class="calc-btn bg-emerald-600 hover:bg-emerald-700 text-white p-2.5 rounded-xl">=</button>
+      </div>
+    </div>
   </div>
 
   <script type="module" src="supabase-config.js"></script>

@@ -132,7 +132,7 @@ function calcularCotizacion() {
   const costoBaseMaterial = areaM2 * costoMat;
   const costoTotalProduccion = costoBaseMaterial + costoAcabados + manoObra;
   const factorMargen = porcentajeMargen > 0 ? (1 + (porcentajeMargen / 100)) : 1;
-  
+
   const totalUSD = costoTotalProduccion * factorMargen;
   const totalBsUSD = totalUSD * tasaUSD_BCV;
   const totalBsEUR = totalUSD * tasaEUR_BCV;
@@ -226,7 +226,6 @@ async function renderizarTablaRegistros(filtro = '') {
   const tbody = document.getElementById('tabla-registros-body');
   if (!tbody) return;
 
-  // Sincronización directa con Supabase en la nube
   const registrosCloud = await sincronizarDesdeCloud();
   let registros = registrosCloud.length > 0 ? registrosCloud : await db.cotizaciones.orderBy('id').reverse().toArray();
 
@@ -310,15 +309,7 @@ async function descargarCotizacionExcel() {
   const primaryHeaderFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '1E1B4B' } };
   const sectionFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'EEF2FF' } };
   const resultHeaderFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '0F172A' } };
-  const greenHighlightFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'ECFDF5' } };
   const greenTotalFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '059669' } };
-
-  const borderThin = {
-    top: { style: 'thin', color: { argb: 'CBD5E1' } },
-    left: { style: 'thin', color: { argb: 'CBD5E1' } },
-    bottom: { style: 'thin', color: { argb: 'CBD5E1' } },
-    right: { style: 'thin', color: { argb: 'CBD5E1' } }
-  };
 
   worksheet.mergeCells('A1:E1');
   worksheet.getCell('A1').value = 'COTIZACIÓN DE SERVICIOS - IMPRESIÓN Y PLOTTER';
@@ -427,6 +418,58 @@ async function descargarCotizacionExcel() {
   window.URL.revokeObjectURL(url);
 }
 
+function inicializarCalculadoraFlotante() {
+  const btnAbrir = document.getElementById('btn-abrir-calculadora');
+  const btnCerrar = document.getElementById('btn-cerrar-calculadora');
+  const modal = document.getElementById('modal-calculadora');
+  const display = document.getElementById('calc-display');
+  const botones = document.querySelectorAll('.calc-btn');
+
+  if (!btnAbrir || !modal || !display) return;
+
+  btnAbrir.addEventListener('click', () => {
+    modal.classList.remove('hidden');
+  });
+
+  if (btnCerrar) {
+    btnCerrar.addEventListener('click', () => {
+      modal.classList.add('hidden');
+    });
+  }
+
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      modal.classList.add('hidden');
+    }
+  });
+
+  let expr = '0';
+
+  botones.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const val = btn.getAttribute('data-val');
+      
+      if (val === 'C') {
+        expr = '0';
+      } else if (val === '=') {
+        try {
+          let resultado = eval(expr.replace(/×/g, '*').replace(/÷/g, '/'));
+          expr = String(Math.round(resultado * 1000000) / 1000000);
+        } catch (err) {
+          expr = 'Error';
+        }
+      } else {
+        if (expr === '0' || expr === 'Error') {
+          expr = val;
+        } else {
+          expr += val;
+        }
+      }
+      display.value = expr;
+    });
+  });
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   inicializarTema();
   if (window.lucide) lucide.createIcons();
@@ -445,6 +488,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('filtro-buscar')?.addEventListener('input', (e) => {
     renderizarTablaRegistros(e.target.value);
   });
+
+  inicializarCalculadoraFlotante();
 
   const formCotizador = document.getElementById('form-cotizacion');
   if (formCotizador) {
@@ -469,11 +514,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         fecha: new Date().toISOString()
       };
 
-      // Guardar en la base de datos de Supabase en la nube
       await guardarCotizacionCloud(cotizacion);
-      // Guardar respaldo local opcional
       await db.cotizaciones.add(cotizacion);
-      
+
       await renderizarTablaRegistros();
       await obtenerSiguienteNumeroCotizacion();
       alert(`✅ Cotización ${cotizacion.nroCotizacion} guardada y sincronizada en la nube correctamente`);
