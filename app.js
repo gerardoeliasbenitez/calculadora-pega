@@ -111,6 +111,7 @@ async function actualizarTasasBCV() {
   calcularCotizacion();
 }
 
+// 📐 FÓRMULAS OFICIALES DE CÁLCULO (MÉTODO DE TIRAS BRUTAS)
 function calcularCotizacion() {
   const anchoMat = parsearFloatVE(document.getElementById('anchoMaterial')?.value); // Base del Diseño
   const altoMat = parsearFloatVE(document.getElementById('altoMaterial')?.value);   // Altura del Diseño
@@ -131,23 +132,23 @@ function calcularCotizacion() {
   let metrosLineales = 0;
   let areaM2 = 0;
 
-  // Paso 1: Tiras Teóricas = Base del Diseño / Ancho del Plotter
-  if (anchoMat > 0 && anchoPlotter > 0) {
+  // 1. Tiras Teóricas = Base del Diseño / Ancho del Plotter
+  if (anchoPlotter > 0 && anchoMat > 0) {
     tirasTeoricas = anchoMat / anchoPlotter;
-    piezasPorTira = Math.ceil(tirasTeoricas); // Redondeo al entero superior
+    piezasPorTira = Math.ceil(tirasTeoricas); // Redondeo al entero superior (Cantidad de Tiras)
   }
 
-  // Paso 2: Metros Lineales = Cantidad de Tiras x Altura del Diseño
+  // 2. Metros Lineales = Cantidad de Tiras x Altura del Diseño
   if (piezasPorTira > 0 && altoMat > 0) {
     metrosLineales = piezasPorTira * altoMat;
   }
 
-  // Paso 3: M² Brutos = Metros Lineales x Ancho del Plotter
+  // 3. Metros Cuadrados Brutos = Metros Lineales x Ancho del Plotter
   if (metrosLineales > 0 && anchoPlotter > 0) {
     areaM2 = metrosLineales * anchoPlotter;
   }
 
-  // Paso 4: Presupuesto Total = M² Brutos x Precio por M²
+  // 4. Presupuesto Total ($ USD) = Metros Cuadrados Brutos x Precio por M²
   const totalUSD = areaM2 * precioM2;
   const totalBsUSD = totalUSD * tasaUSD_BCV;
   const totalBsEUR = totalUSD * tasaEUR_BCV;
@@ -296,6 +297,7 @@ async function renderizarTablaRegistros(filtro = '') {
   }).join('');
 }
 
+// 📊 EXPORTACIÓN A EXCEL CON FÓRMULAS UNIVERSALES EN INGLÉS (ROUNDUP)
 async function descargarCotizacionExcel() {
   if (typeof ExcelJS === 'undefined') {
     alert('⚠️ La librería ExcelJS no está cargada correctamente.');
@@ -386,12 +388,13 @@ async function descargarCotizacionExcel() {
   worksheet.getRow(16).values = ['Métrica', 'Fórmula', 'Resultado', '', ''];
   worksheet.mergeCells('C16:E16');
 
+  // Fórmulas Excel corregidas con ROUNDUP en inglés
   worksheet.getRow(17).values = ['Tiras Teóricas', '=B10/B12', '', '', ''];
   worksheet.getCell('C17').value = { formula: 'B10/B12', result: res.tirasTeoricas };
   worksheet.mergeCells('C17:E17');
 
-  worksheet.getRow(18).values = ['Cantidad de Tiras (Paneles)', '=REDONDEAR.MAS(B17;0)', '', '', ''];
-  worksheet.getCell('C18').value = { formula: 'CEILING(B17, 1)', result: res.piezasPorTira };
+  worksheet.getRow(18).values = ['Cantidad de Tiras (Paneles)', '=ROUNDUP(B17,0)', '', '', ''];
+  worksheet.getCell('C18').value = { formula: 'ROUNDUP(B17, 0)', result: res.piezasPorTira };
   worksheet.mergeCells('C18:E18');
 
   worksheet.getRow(19).values = ['Metros Lineales (ML)', '=B18*B11', '', '', ''];
@@ -412,7 +415,7 @@ async function descargarCotizacionExcel() {
   worksheet.getRow(23).values = ['Tasa Dólar ($) BCV', res.tasaUSD, 'Bs. / USD', 'BCV', ''];
   worksheet.getRow(24).values = ['Tasa Euro (€) BCV', res.tasaEUR, 'Bs. / EUR', 'BCV', ''];
 
-  worksheet.getRow(25).values = ['PRESIO TOTAL A AUTORIZAR ($ USD)', '', '', '', ''];
+  worksheet.getRow(25).values = ['PRECIO TOTAL A AUTORIZAR ($ USD)', '', '', '', ''];
   worksheet.getCell('B25').value = { formula: 'B20*B13', result: res.totalUSD };
   worksheet.mergeCells('B25:E25');
 
@@ -434,6 +437,7 @@ async function descargarCotizacionExcel() {
   window.URL.revokeObjectURL(url);
 }
 
+// 🧮 CALCULADORA AUXILIAR FLOTANTE CON COMA FUNCIONAL
 function inicializarCalculadoraFlotante() {
   const btnAbrir = document.getElementById('btn-abrir-calculadora');
   const btnCerrar = document.getElementById('btn-cerrar-calculadora');
@@ -480,6 +484,10 @@ function inicializarCalculadoraFlotante() {
           expr = String(Math.round(resultado * 1000000) / 1000000).replace(/\./g, ',');
         } catch (err) {
           expr = 'Error';
+        }
+      } else if (val === ',') {
+        if (!expr.includes(',')) {
+          expr += ',';
         }
       } else {
         if (expr === '0' || expr === 'Error') {
