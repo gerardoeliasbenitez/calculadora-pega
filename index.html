@@ -163,10 +163,10 @@
         </div>
 
         <div class="flex items-center gap-2">
-          <!-- Botón de Calculadora Redondo con símbolos + - arriba y × ÷ abajo -->
-          <button type="button" id="btn-abrir-calculadora" title="Calculadora Auxiliar" class="w-10 h-10 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full shadow-md transition flex flex-col items-center justify-center font-bold text-[10px] leading-tight ring-2 ring-indigo-400/30">
-            <span>+ -</span>
-            <span>× ÷</span>
+          <!-- Botón de Calculadora Redondo con símbolos agrandados + - / x ÷ -->
+          <button type="button" id="btn-abrir-calculadora" title="Calculadora Auxiliar" class="w-12 h-12 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full shadow-md transition flex flex-col items-center justify-center font-extrabold text-xs leading-tight ring-2 ring-indigo-400/40">
+            <span class="tracking-widest text-[13px]">+ -</span>
+            <span class="tracking-widest text-[13px]">× ÷</span>
           </button>
 
           <div class="bg-slate-900 border border-slate-700/80 px-2.5 py-1 rounded-xl flex items-center gap-2 text-[11px] shadow-inner">
@@ -267,7 +267,7 @@
 
   </div>
 
-  <!-- Modal de Calculadora Flotante Ajustada a la Imagen de Referencia -->
+  <!-- Modal de Calculadora Flotante Ajustada -->
   <div id="modal-calculadora" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white text-slate-800 rounded-3xl w-full max-w-xs p-5 shadow-2xl space-y-4">
       
