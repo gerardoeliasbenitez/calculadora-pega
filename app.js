@@ -11,10 +11,16 @@ let tasaUSD_BCV = 36.50;
 let tasaEUR_BCV = 39.80;
 let siguienteCotizacionCodigo = 'COTZ-000001';
 
+// 🔧 CORRECCIÓN CRÍTICA DE PARSEO DE COMAS Y PUNTOS DECIMALES
 function parsearFloatVE(valor) {
   if (!valor) return 0;
-  const limpio = String(valor).replace(/\./g, '').replace(',', '.');
-  return parseFloat(limpio) || 0;
+  let str = String(valor).trim();
+  if (str.includes(',') && str.includes('.')) {
+    str = str.replace(/\./g, '').replace(',', '.');
+  } else if (str.includes(',')) {
+    str = str.replace(',', '.');
+  }
+  return parseFloat(str) || 0;
 }
 
 function formatearNumeroVE(valor, decimales = 2) {
@@ -111,7 +117,7 @@ async function actualizarTasasBCV() {
   calcularCotizacion();
 }
 
-// 📐 FÓRMULAS OFICIALES ACTUALIZADAS (MÉTODO DE TIRAS BRUTAS)
+// 📐 FÓRMULAS DE CÁLCULO
 function calcularCotizacion() {
   const anchoMat = parsearFloatVE(document.getElementById('anchoMaterial')?.value); // Base del Diseño
   const altoMat = parsearFloatVE(document.getElementById('altoMaterial')?.value);   // Altura del Diseño
@@ -297,7 +303,7 @@ async function renderizarTablaRegistros(filtro = '') {
   }).join('');
 }
 
-// 📊 EXPORTACIÓN A EXCEL CON FÓRMULAS UNIVERSALES EN INGLÉS
+// 📊 EXPORTACIÓN A EXCEL
 async function descargarCotizacionExcel() {
   if (typeof ExcelJS === 'undefined') {
     alert('⚠️ La librería ExcelJS no está cargada correctamente.');
@@ -400,7 +406,6 @@ async function descargarCotizacionExcel() {
   worksheet.getCell('C19').value = { formula: 'B18*B11', result: res.metrosLineales };
   worksheet.mergeCells('C19:E19');
 
-  // Fórmula de metros cuadrados brutos exacta: =(Alto Material * Ancho Plotter) * Tiras
   worksheet.getRow(20).values = ['Metros Cuadrados Brutos (m²)', '=(B11*B12)*B18', '', '', ''];
   worksheet.getCell('C20').value = { formula: '(B11*B12)*B18', result: res.areaM2 };
   worksheet.getCell('C20').numFmt = '#,##0.00 "m²"';
@@ -437,7 +442,7 @@ async function descargarCotizacionExcel() {
   window.URL.revokeObjectURL(url);
 }
 
-// 🧮 CALCULADORA AUXILIAR FLOTANTE CON COMA FUNCIONAL
+// 🧮 CALCULADORA AUXILIAR FLOTANTE
 function inicializarCalculadoraFlotante() {
   const btnAbrir = document.getElementById('btn-abrir-calculadora');
   const btnCerrar = document.getElementById('btn-cerrar-calculadora');
