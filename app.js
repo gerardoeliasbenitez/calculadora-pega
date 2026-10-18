@@ -447,14 +447,18 @@ function inicializarCalculadoraFlotante() {
 
   botones.forEach(btn => {
     btn.addEventListener('click', () => {
-      const val = btn.getAttribute('data-val');
+      let val = btn.getAttribute('data-val');
       
+      // Si presiona la coma, internamente la tratamos como punto para que eval() funcione, pero se muestra como coma
+      let valorEval = val === ',' ? '.' : val;
+
       if (val === 'C') {
         expr = '0';
       } else if (val === '=') {
         try {
-          let resultado = eval(expr.replace(/×/g, '*').replace(/÷/g, '/'));
-          expr = String(Math.round(resultado * 1000000) / 1000000);
+          let evaluable = expr.replace(/×/g, '*').replace(/÷/g, '/').replace(/,/g, '.');
+          let resultado = eval(evaluable);
+          expr = String(Math.round(resultado * 1000000) / 1000000).replace(/\./g, ',');
         } catch (err) {
           expr = 'Error';
         }
