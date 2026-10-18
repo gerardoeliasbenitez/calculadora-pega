@@ -112,28 +112,43 @@ async function actualizarTasasBCV() {
 }
 
 function calcularCotizacion() {
-  const anchoMat = parsearFloatVE(document.getElementById('anchoMaterial')?.value);
-  const altoMat = parsearFloatVE(document.getElementById('altoMaterial')?.value);
-  const anchoPlotter = parsearFloatVE(document.getElementById('anchoPlotter')?.value);
-  const costoMat = parsearFloatVE(document.getElementById('costoMaterial')?.value);
-  const costoAcabados = parsearFloatVE(document.getElementById('costoAcabados')?.value);
-  const manoObra = parsearFloatVE(document.getElementById('manoObra')?.value);
-  const porcentajeMargen = parsearFloatVE(document.getElementById('porcentajeMargen')?.value);
+  const anchoMat = parsearFloatVE(document.getElementById('anchoMaterial')?.value); // Base del Diseño
+  const altoMat = parsearFloatVE(document.getElementById('altoMaterial')?.value);   // Altura del Diseño
+  
+  const selectPlotter = document.getElementById('anchoPlotter-select');
+  const inputPlotter = document.getElementById('anchoPlotter-input');
+  let anchoPlotter = 0;
+  if (selectPlotter && !selectPlotter.classList.contains('hidden')) {
+    anchoPlotter = parsearFloatVE(selectPlotter.value);
+  } else if (inputPlotter && !inputPlotter.classList.contains('hidden')) {
+    anchoPlotter = parsearFloatVE(inputPlotter.value);
+  }
+
+  const precioM2 = parsearFloatVE(document.getElementById('costoMaterial')?.value); // Precio por M²
 
   let tirasTeoricas = 0;
   let piezasPorTira = 0;
+  let metrosLineales = 0;
+  let areaM2 = 0;
 
-  if (anchoPlotter > 0 && anchoMat > 0) {
+  // Paso 1: Tiras Teóricas = Base del Diseño / Ancho del Plotter
+  if (anchoMat > 0 && anchoPlotter > 0) {
     tirasTeoricas = anchoMat / anchoPlotter;
-    piezasPorTira = Math.ceil(tirasTeoricas);
+    piezasPorTira = Math.ceil(tirasTeoricas); // Redondeo al entero superior
   }
 
-  const areaM2 = anchoMat * altoMat;
-  const costoBaseMaterial = areaM2 * costoMat;
-  const costoTotalProduccion = costoBaseMaterial + costoAcabados + manoObra;
-  const factorMargen = porcentajeMargen > 0 ? (1 + (porcentajeMargen / 100)) : 1;
+  // Paso 2: Metros Lineales = Cantidad de Tiras x Altura del Diseño
+  if (piezasPorTira > 0 && altoMat > 0) {
+    metrosLineales = piezasPorTira * altoMat;
+  }
 
-  const totalUSD = costoTotalProduccion * factorMargen;
+  // Paso 3: M² Brutos = Metros Lineales x Ancho del Plotter
+  if (metrosLineales > 0 && anchoPlotter > 0) {
+    areaM2 = metrosLineales * anchoPlotter;
+  }
+
+  // Paso 4: Presupuesto Total = M² Brutos x Precio por M²
+  const totalUSD = areaM2 * precioM2;
   const totalBsUSD = totalUSD * tasaUSD_BCV;
   const totalBsEUR = totalUSD * tasaEUR_BCV;
 
@@ -147,9 +162,8 @@ function calcularCotizacion() {
   document.getElementById('res-precio-bs-eur').textContent = `Bs. ${formatearNumeroVE(totalBsEUR, 2)}`;
 
   return {
-    anchoMat, altoMat, anchoPlotter, costoMat, areaM2,
-    tirasTeoricas, piezasPorTira, costoAcabados, manoObra,
-    porcentajeMargen, totalUSD, totalBsUSD, totalBsEUR,
+    anchoMat, altoMat, anchoPlotter, costoMaterial: precioM2, areaM2,
+    tirasTeoricas, piezasPorTira, metrosLineales, totalUSD, totalBsUSD, totalBsEUR,
     tasaUSD: tasaUSD_BCV, tasaEUR: tasaEUR_BCV
   };
 }
@@ -188,6 +202,8 @@ function configurarSelectorDinamico(campo) {
       inputEl.classList.remove('hidden');
       btnCancel.classList.remove('hidden');
       inputEl.focus();
+    } else {
+      calcularCotizacion();
     }
   });
 
@@ -197,7 +213,10 @@ function configurarSelectorDinamico(campo) {
     btnCancel.classList.add('hidden');
     selectEl.classList.remove('hidden');
     selectEl.value = '';
+    calcularCotizacion();
   });
+
+  inputEl.addEventListener('input', calcularCotizacion);
 }
 
 async function obtenerValorCampoYGuardar(campo) {
@@ -211,7 +230,7 @@ async function obtenerValorCampoYGuardar(campo) {
     valor = inputEl.value.trim();
   }
 
-  if (valor && valor !== '__NUEVO__') {
+  if (valor && valor !== '__NUEVO__' && campo !== 'anchoPlotter') {
     const existe = await db.catalogos.where({ tipo: campo, valor: valor }).first();
     if (!existe) {
       await db.catalogos.add({ tipo: campo, valor: valor });
@@ -219,7 +238,7 @@ async function obtenerValorCampoYGuardar(campo) {
     }
   }
 
-  return valor || (campo === 'cliente' ? 'Consumidor Final' : campo === 'proyecto' ? 'General' : 'Vinilo');
+  return valor || (campo === 'cliente' ? 'Consumidor Final' : campo === 'proyecto' ? 'General' : campo === 'anchoPlotter' ? '1.37' : 'Vinilo');
 }
 
 async function renderizarTablaRegistros(filtro = '') {
@@ -346,13 +365,10 @@ async function descargarCotizacionExcel() {
   ['A9', 'B9', 'C9', 'D9', 'E9'].forEach(c => worksheet.getCell(c).fill = resultHeaderFill);
 
   const parametrosData = [
-    ['Ancho Material', res.anchoMat, 'm', 'Ancho de la bobina'],
-    ['Alto Material', res.altoMat, 'm', 'Largo requerido'],
-    ['Ancho Plotter', res.anchoPlotter, 'm', 'Ancho máximo'],
-    ['Costo Material', res.costoMat, '$ / m²', 'Costo por m²'],
-    ['Costo Acabados', res.costoAcabados, '$', 'Acabados'],
-    ['Mano de Obra', res.manoObra, '$', 'Instalación'],
-    ['Margen de Ganancia', res.porcentajeMargen, '%', 'Margen comercial']
+    ['Base del Diseño', res.anchoMat, 'm', 'Base del diseño'],
+    ['Altura del Diseño', res.altoMat, 'm', 'Altura del diseño'],
+    ['Ancho Útil Plotter', res.anchoPlotter, 'm', 'Ancho útil de bobina'],
+    ['Precio por M²', res.costoMaterial, '$ / m²', 'Costo por m²']
   ];
 
   parametrosData.forEach((rowVals, idx) => {
@@ -362,51 +378,51 @@ async function descargarCotizacionExcel() {
   });
 
   worksheet.addRow([]);
-  worksheet.mergeCells('A18:E18');
-  worksheet.getCell('A18').value = '📊 RESULTADOS DE PRODUCCIÓN';
-  worksheet.getCell('A18').font = { name: 'Arial', size: 10, bold: true, color: { argb: '1E1B4B' } };
-  worksheet.getCell('A18').fill = sectionFill;
+  worksheet.mergeCells('A15:E15');
+  worksheet.getCell('A15').value = '📊 RESULTADOS DE PRODUCCIÓN (MÉTODO DE TIRAS BRUTAS)';
+  worksheet.getCell('A15').font = { name: 'Arial', size: 10, bold: true, color: { argb: '1E1B4B' } };
+  worksheet.getCell('A15').fill = sectionFill;
 
-  worksheet.getRow(19).values = ['Métrica', 'Fórmula', 'Resultado', '', ''];
+  worksheet.getRow(16).values = ['Métrica', 'Fórmula', 'Resultado', '', ''];
+  worksheet.mergeCells('C16:E16');
+
+  worksheet.getRow(17).values = ['Tiras Teóricas', '=B10/B12', '', '', ''];
+  worksheet.getCell('C17').value = { formula: 'B10/B12', result: res.tirasTeoricas };
+  worksheet.mergeCells('C17:E17');
+
+  worksheet.getRow(18).values = ['Cantidad de Tiras (Paneles)', '=REDONDEAR.MAS(B17;0)', '', '', ''];
+  worksheet.getCell('C18').value = { formula: 'CEILING(B17, 1)', result: res.piezasPorTira };
+  worksheet.mergeCells('C18:E18');
+
+  worksheet.getRow(19).values = ['Metros Lineales (ML)', '=B18*B11', '', '', ''];
+  worksheet.getCell('C19').value = { formula: 'B18*B11', result: res.metrosLineales };
   worksheet.mergeCells('C19:E19');
 
-  worksheet.getRow(20).values = ['Metros Cuadrados (m²)', '=B10*B11', '', '', ''];
-  worksheet.getCell('C20').value = { formula: 'B10*B11', result: res.areaM2 };
+  worksheet.getRow(20).values = ['Metros Cuadrados Brutos (m²)', '=B19*B12', '', '', ''];
+  worksheet.getCell('C20').value = { formula: 'B19*B12', result: res.areaM2 };
   worksheet.getCell('C20').numFmt = '#,##0.00 "m²"';
   worksheet.mergeCells('C20:E20');
 
-  worksheet.getRow(21).values = ['Tiras Teóricas', '=B10/SI(B12>0;B12;1)', '', '', ''];
-  worksheet.getCell('C21').value = { formula: 'IF(B12>0, B10/B12, 0)', result: res.tirasTeoricas };
-  worksheet.mergeCells('C21:E21');
-
-  worksheet.getRow(22).values = ['Tiras / Piezas', '=REDONDEAR.MAS(B21;0)', '', '', ''];
-  worksheet.getCell('C22').value = { formula: 'CEILING(B21, 1)', result: res.piezasPorTira };
-  worksheet.mergeCells('C22:E22');
-
-  worksheet.getRow(23).values = ['Costo Producción ($)', '=((B10*B11)*B13)+B14+B15', '', '', ''];
-  worksheet.getCell('C23').value = { formula: '((B10*B11)*B13)+B14+B15', result: (res.areaM2 * res.costoMat) + res.costoAcabados + res.manoObra };
-  worksheet.mergeCells('C23:E23');
-
   worksheet.addRow([]);
-  worksheet.mergeCells('A25:E25');
-  worksheet.getCell('A25').value = '💰 RESUMEN FINANCIERO Y LIQUIDACIÓN BCV';
-  worksheet.getCell('A25').font = { name: 'Arial', size: 10, bold: true, color: { argb: 'FFFFFF' } };
-  worksheet.getCell('A25').fill = greenTotalFill;
+  worksheet.mergeCells('A22:E22');
+  worksheet.getCell('A22').value = '💰 PRESUPUESTO Y LIQUIDACIÓN BCV';
+  worksheet.getCell('A22').font = { name: 'Arial', size: 10, bold: true, color: { argb: 'FFFFFF' } };
+  worksheet.getCell('A22').fill = greenTotalFill;
 
-  worksheet.getRow(26).values = ['Tasa Dólar ($) BCV', res.tasaUSD, 'Bs. / USD', 'BCV', ''];
-  worksheet.getRow(27).values = ['Tasa Euro (€) BCV', res.tasaEUR, 'Bs. / EUR', 'BCV', ''];
+  worksheet.getRow(23).values = ['Tasa Dólar ($) BCV', res.tasaUSD, 'Bs. / USD', 'BCV', ''];
+  worksheet.getRow(24).values = ['Tasa Euro (€) BCV', res.tasaEUR, 'Bs. / EUR', 'BCV', ''];
 
-  worksheet.getRow(28).values = ['PRECIO TOTAL ($ USD)', '', '', '', ''];
-  worksheet.getCell('B28').value = { formula: 'B23*(1+(B16/100))', result: res.totalUSD };
-  worksheet.mergeCells('B28:E28');
+  worksheet.getRow(25).values = ['PRESIO TOTAL A AUTORIZAR ($ USD)', '', '', '', ''];
+  worksheet.getCell('B25').value = { formula: 'B20*B13', result: res.totalUSD };
+  worksheet.mergeCells('B25:E25');
 
-  worksheet.getRow(29).values = ['Precio Total (Bs. USD)', '', '', '', ''];
-  worksheet.getCell('B29').value = { formula: 'B28*B26', result: res.totalBsUSD };
-  worksheet.mergeCells('B29:E29');
+  worksheet.getRow(26).values = ['Precio Total (Bs. USD)', '', '', '', ''];
+  worksheet.getCell('B26').value = { formula: 'B25*B23', result: res.totalBsUSD };
+  worksheet.mergeCells('B26:E26');
 
-  worksheet.getRow(30).values = ['Precio Total (Bs. Euro)', '', '', '', ''];
-  worksheet.getCell('B30').value = { formula: 'B28*B27', result: res.totalBsEUR };
-  worksheet.mergeCells('B30:E30');
+  worksheet.getRow(27).values = ['Precio Total (Bs. Euro)', '', '', '', ''];
+  worksheet.getCell('B27').value = { formula: 'B25*B24', result: res.totalBsEUR };
+  worksheet.mergeCells('B27:E27');
 
   const buffer = await workbook.xlsx.writeBuffer();
   const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
@@ -451,10 +467,17 @@ function inicializarCalculadoraFlotante() {
       
       if (val === 'C') {
         expr = '0';
+      } else if (val === 'BACK') {
+        if (expr.length > 1 && expr !== 'Error') {
+          expr = expr.slice(0, -1);
+        } else {
+          expr = '0';
+        }
       } else if (val === '=') {
         try {
-          let resultado = eval(expr.replace(/×/g, '*').replace(/÷/g, '/'));
-          expr = String(Math.round(resultado * 1000000) / 1000000);
+          let limpia = expr.replace(/×/g, '*').replace(/÷/g, '/').replace(/,/g, '.');
+          let resultado = eval(limpia);
+          expr = String(Math.round(resultado * 1000000) / 1000000).replace(/\./g, ',');
         } catch (err) {
           expr = 'Error';
         }
@@ -479,9 +502,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   await cargarCatalogosSelects();
   await renderizarTablaRegistros();
 
-  ['cliente', 'proyecto', 'material'].forEach(configurarSelectorDinamico);
+  ['cliente', 'proyecto', 'material', 'anchoPlotter'].forEach(configurarSelectorDinamico);
 
-  ['anchoMaterial', 'altoMaterial', 'anchoPlotter', 'costoMaterial', 'costoAcabados', 'manoObra', 'porcentajeMargen'].forEach(id => {
+  ['anchoMaterial', 'altoMaterial', 'costoMaterial'].forEach(id => {
     document.getElementById(id)?.addEventListener('input', calcularCotizacion);
   });
 
@@ -500,6 +523,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const clienteVal = await obtenerValorCampoYGuardar('cliente');
       const proyectoVal = await obtenerValorCampoYGuardar('proyecto');
       const materialVal = await obtenerValorCampoYGuardar('material');
+      const anchoPlotterVal = await obtenerValorCampoYGuardar('anchoPlotter');
 
       const cotizacion = {
         nroCotizacion: siguienteCotizacionCodigo,
@@ -508,7 +532,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         material: materialVal,
         anchoMaterial: parsearFloatVE(document.getElementById('anchoMaterial')?.value),
         altoMaterial: parsearFloatVE(document.getElementById('altoMaterial')?.value),
-        anchoPlotter: parsearFloatVE(document.getElementById('anchoPlotter')?.value),
+        anchoPlotter: parsearFloatVE(anchoPlotterVal),
         costoMaterial: parsearFloatVE(document.getElementById('costoMaterial')?.value),
         ...resultados,
         fecha: new Date().toISOString()
