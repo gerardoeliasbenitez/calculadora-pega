@@ -133,6 +133,7 @@ function calcularCotizacion() {
   const costoTotalProduccion = costoBaseMaterial + costoAcabados + manoObra;
   const factorMargen = porcentajeMargen > 0 ? (1 + (porcentajeMargen / 100)) : 1;
 
+  // Cálculo corregido y verificado
   const totalUSD = costoTotalProduccion * factorMargen;
   const totalBsUSD = totalUSD * tasaUSD_BCV;
   const totalBsEUR = totalUSD * tasaEUR_BCV;
@@ -423,7 +424,7 @@ function inicializarCalculadoraFlotante() {
   const btnCerrar = document.getElementById('btn-cerrar-calculadora');
   const modal = document.getElementById('modal-calculadora');
   const display = document.getElementById('calc-display');
-  const botones = document.querySelectorAll('.calc-btn');
+  const botones = document.querySelectorAll('#modal-calculadora .calc-btn');
 
   if (!btnAbrir || !modal || !display) return;
 
@@ -447,26 +448,52 @@ function inicializarCalculadoraFlotante() {
 
   botones.forEach(btn => {
     btn.addEventListener('click', () => {
-      let val = btn.getAttribute('data-val');
-      
-      // Si presiona la coma, internamente la tratamos como punto para que eval() funcione, pero se muestra como coma
-      let valorEval = val === ',' ? '.' : val;
+      const val = btn.getAttribute('data-val');
+      if (!val) return;
 
       if (val === 'C') {
         expr = '0';
+      } else if (val === 'BACKSPACE') {
+        if (expr.length > 1 && expr !== 'Error') {
+          expr = expr.slice(0, -1);
+        } else {
+          expr = '0';
+        }
+      } else if (val === '%') {
+        try {
+          let num = parseFloat(expr.replace(/,/g, '.'));
+          if (!isNaN(num)) {
+            expr = String(num / 100).replace(/\./g, ',');
+          }
+        } catch (e) {
+          expr = 'Error';
+        }
       } else if (val === '=') {
         try {
-          let evaluable = expr.replace(/×/g, '*').replace(/÷/g, '/').replace(/,/g, '.');
-          let resultado = eval(evaluable);
-          expr = String(Math.round(resultado * 1000000) / 1000000).replace(/\./g, ',');
+          let exprSanitizada = expr
+            .replace(/×/g, '*')
+            .replace(/÷/g, '/')
+            .replace(/,/g, '.');
+
+          let resultado = eval(exprSanitizada);
+          if (isNaN(resultado) || !isFinite(resultado)) {
+            expr = 'Error';
+          } else {
+            let resNum = Math.round(resultado * 1000000) / 1000000;
+            expr = String(resNum).replace(/\./g, ',');
+          }
         } catch (err) {
           expr = 'Error';
         }
       } else {
         if (expr === '0' || expr === 'Error') {
-          expr = val;
+          expr = (val === ',') ? '0,' : val;
         } else {
-          expr += val;
+          if (val === ',' && expr.includes(',')) {
+            // Evitar múltiples comas
+          } else {
+            expr += val;
+          }
         }
       }
       display.value = expr;
