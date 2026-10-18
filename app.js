@@ -128,14 +128,8 @@ function calcularCotizacion() {
     piezasPorTira = Math.ceil(tirasTeoricas);
   }
 
-  // Círculo rojo (Metros cuadrados base de la pieza)
-  const areaM2Base = anchoMat * altoMat;
-
-  // Círculo rojo multiplicado por el círculo amarillo (Tiras / Piezas)
-  const factorPiezas = piezasPorTira > 0 ? piezasPorTira : 1;
-  const areaM2Total = areaM2Base * factorPiezas;
-
-  const costoBaseMaterial = areaM2Total * costoMat;
+  const areaM2 = anchoMat * altoMat;
+  const costoBaseMaterial = areaM2 * costoMat;
   const costoTotalProduccion = costoBaseMaterial + costoAcabados + manoObra;
   const factorMargen = porcentajeMargen > 0 ? (1 + (porcentajeMargen / 100)) : 1;
 
@@ -144,7 +138,7 @@ function calcularCotizacion() {
   const totalBsEUR = totalUSD * tasaEUR_BCV;
 
   const elAreaM2 = document.getElementById('res-metros-cuadrados');
-  if (elAreaM2) elAreaM2.textContent = `${formatearNumeroVE(areaM2Total, 2)} m²`;
+  if (elAreaM2) elAreaM2.textContent = `${formatearNumeroVE(areaM2, 2)} m²`;
 
   document.getElementById('res-tiras-teoricas').textContent = formatearNumeroVE(tirasTeoricas, 2);
   document.getElementById('res-piezas-tiras').textContent = piezasPorTira;
@@ -153,7 +147,7 @@ function calcularCotizacion() {
   document.getElementById('res-precio-bs-eur').textContent = `Bs. ${formatearNumeroVE(totalBsEUR, 2)}`;
 
   return {
-    anchoMat, altoMat, anchoPlotter, costoMat, areaM2: areaM2Total,
+    anchoMat, altoMat, anchoPlotter, costoMat, areaM2,
     tirasTeoricas, piezasPorTira, costoAcabados, manoObra,
     porcentajeMargen, totalUSD, totalBsUSD, totalBsEUR,
     tasaUSD: tasaUSD_BCV, tasaEUR: tasaEUR_BCV
@@ -376,8 +370,8 @@ async function descargarCotizacionExcel() {
   worksheet.getRow(19).values = ['Métrica', 'Fórmula', 'Resultado', '', ''];
   worksheet.mergeCells('C19:E19');
 
-  worksheet.getRow(20).values = ['Metros Cuadrados (m²)', '=(B10*B11)*B22', '', '', ''];
-  worksheet.getCell('C20').value = { formula: '(B10*B11)*B22', result: res.areaM2 };
+  worksheet.getRow(20).values = ['Metros Cuadrados (m²)', '=B10*B11', '', '', ''];
+  worksheet.getCell('C20').value = { formula: 'B10*B11', result: res.areaM2 };
   worksheet.getCell('C20').numFmt = '#,##0.00 "m²"';
   worksheet.mergeCells('C20:E20');
 
@@ -389,8 +383,8 @@ async function descargarCotizacionExcel() {
   worksheet.getCell('C22').value = { formula: 'CEILING(B21, 1)', result: res.piezasPorTira };
   worksheet.mergeCells('C22:E22');
 
-  worksheet.getRow(23).values = ['Costo Producción ($)', '=(C20*B13)+B14+B15', '', '', ''];
-  worksheet.getCell('C23').value = { formula: '(C20*B13)+B14+B15', result: (res.areaM2 * res.costoMat) + res.costoAcabados + res.manoObra };
+  worksheet.getRow(23).values = ['Costo Producción ($)', '=((B10*B11)*B13)+B14+B15', '', '', ''];
+  worksheet.getCell('C23').value = { formula: '((B10*B11)*B13)+B14+B15', result: (res.areaM2 * res.costoMat) + res.costoAcabados + res.manoObra };
   worksheet.mergeCells('C23:E23');
 
   worksheet.addRow([]);
@@ -429,7 +423,7 @@ function inicializarCalculadoraFlotante() {
   const btnCerrar = document.getElementById('btn-cerrar-calculadora');
   const modal = document.getElementById('modal-calculadora');
   const display = document.getElementById('calc-display');
-  const botones = document.querySelectorAll('#modal-calculadora .calc-btn');
+  const botones = document.querySelectorAll('.calc-btn');
 
   if (!btnAbrir || !modal || !display) return;
 
@@ -454,56 +448,21 @@ function inicializarCalculadoraFlotante() {
   botones.forEach(btn => {
     btn.addEventListener('click', () => {
       const val = btn.getAttribute('data-val');
-      if (!val) return;
-
+      
       if (val === 'C') {
         expr = '0';
-      } else if (val === 'BACKSPACE') {
-        if (expr.length > 1 && expr !== 'Error') {
-          expr = expr.slice(0, -1);
-        } else {
-          expr = '0';
-        }
-      } else if (val === '%') {
-        try {
-          let num = parseFloat(expr.replace(/,/g, '.'));
-          if (!isNaN(num)) {
-            expr = String(num / 100).replace(/\./g, ',');
-          }
-        } catch (e) {
-          expr = 'Error';
-        }
       } else if (val === '=') {
         try {
-          let exprSanitizada = expr
-            .replace(/×/g, '*')
-            .replace(/÷/g, '/')
-            .replace(/,/g, '.');
-
-          let resultado = eval(exprSanitizada);
-          if (isNaN(resultado) || !isFinite(resultado)) {
-            expr = 'Error';
-          } else {
-            let resNum = Math.round(resultado * 1000000) / 1000000;
-            expr = String(resNum).replace(/\./g, ',');
-          }
+          let resultado = eval(expr.replace(/×/g, '*').replace(/÷/g, '/'));
+          expr = String(Math.round(resultado * 1000000) / 1000000);
         } catch (err) {
           expr = 'Error';
         }
       } else {
         if (expr === '0' || expr === 'Error') {
-          expr = (val === ',') ? '0,' : val;
+          expr = val;
         } else {
-          if (val === ',') {
-            // Verificar el último segmento después del último operador
-            const partes = expr.split(/[\+\-\*\/×÷]/);
-            const ultimaParte = partes[partes.length - 1];
-            if (!ultimaParte.includes(',')) {
-              expr += ',';
-            }
-          } else {
-            expr += val;
-          }
+          expr += val;
         }
       }
       display.value = expr;
@@ -557,7 +516,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       await guardarCotizacionCloud(cotizacion);
       await db.cotizaciones.add(cotizacion);
-
+      
       await renderizarTablaRegistros();
       await obtenerSiguienteNumeroCotizacion();
       alert(`✅ Cotización ${cotizacion.nroCotizacion} guardada y sincronizada en la nube correctamente`);

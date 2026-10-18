@@ -1,6 +1,6 @@
 {
   "short_name": "CalcPrecio",
-  "name": "Calculadora de Precio - Impresión de Material",
+  "name": "Calculadora de Precio - Impresión en Plotter",
   "icons": [
     {
       "src": "./logo.jpg",

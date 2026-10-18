@@ -163,12 +163,7 @@
         </div>
 
         <div class="flex items-center gap-2">
-          <!-- Botón de Calculadora Redondo con símbolos agrandados + - / x ÷ -->
-          <button type="button" id="btn-abrir-calculadora" title="Calculadora Auxiliar" class="w-12 h-12 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full shadow-md transition flex flex-col items-center justify-center font-extrabold text-xs leading-tight ring-2 ring-indigo-400/40">
-            <span class="tracking-widest text-[13px]">+ -</span>
-            <span class="tracking-widest text-[13px]">× ÷</span>
-          </button>
-
+          <!-- Tasas BCV -->
           <div class="bg-slate-900 border border-slate-700/80 px-2.5 py-1 rounded-xl flex items-center gap-2 text-[11px] shadow-inner">
             <span class="text-slate-400 font-semibold">Tasas BCV:</span>
             <div class="flex items-center gap-2 font-mono font-bold">
@@ -177,6 +172,11 @@
               <span id="variacion-usd-eur" class="text-[10px]"></span>
             </div>
           </div>
+
+          <!-- Icono Redondo Calculadora Flotante con + - x / -->
+          <button type="button" id="btn-abrir-calculadora" title="Calculadora Auxiliar (+ - × ÷)" class="w-9 h-9 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full shadow-md transition flex items-center justify-center font-bold text-xs ring-2 ring-indigo-500/30">
+            +−×÷
+          </button>
         </div>
       </div>
 
@@ -187,22 +187,22 @@
           <span id="res-metros-cuadrados" class="text-xl font-bold text-emerald-400 font-mono">0,00 m²</span>
         </div>
 
-        <div id="box-tiras-teoricas" class="bg-black border border-slate-800 p-3 rounded-xl shadow-inner text-white">
+        <div id="box-tiras-teoricas" class="bg-black border border-slate-800 p-3 rounded-xl shadow-inner text-white text-center">
           <span class="block text-[10px] font-medium text-slate-400 uppercase tracking-tight">Tiras Teóricas</span>
           <span id="res-tiras-teoricas" class="text-base font-bold text-white font-mono">0,00</span>
         </div>
 
-        <div id="box-piezas-tiras" class="bg-black border border-slate-800 p-3 rounded-xl shadow-inner text-white">
+        <div id="box-piezas-tiras" class="bg-black border border-slate-800 p-3 rounded-xl shadow-inner text-white text-center">
           <span class="block text-[10px] font-medium text-slate-400 uppercase tracking-tight">Tiras / Piezas</span>
           <span id="res-piezas-tiras" class="text-base font-bold text-emerald-400 font-mono">0</span>
         </div>
 
-        <div id="box-precio-bs-usd" class="bg-black border border-slate-800 p-3 rounded-xl shadow-inner text-white">
+        <div id="box-precio-bs-usd" class="bg-black border border-slate-800 p-3 rounded-xl shadow-inner text-white text-center">
           <span class="block text-[10px] font-medium text-slate-400 uppercase tracking-tight">Precio Total (Bs. USD)</span>
           <span id="res-precio-bs-usd" class="text-base font-bold text-white font-mono">Bs. 0,00</span>
         </div>
 
-        <div id="box-precio-bs-eur" class="bg-black border border-slate-800 p-3 rounded-xl shadow-inner text-white">
+        <div id="box-precio-bs-eur" class="bg-black border border-slate-800 p-3 rounded-xl shadow-inner text-white text-center">
           <span class="block text-[10px] font-medium text-slate-400 uppercase tracking-tight">Precio Total (Bs. Euro)</span>
           <span id="res-precio-bs-eur" class="text-base font-bold text-white font-mono">Bs. 0,00</span>
         </div>
@@ -267,55 +267,43 @@
 
   </div>
 
-  <!-- Modal de Calculadora Flotante Ajustada -->
-  <div id="modal-calculadora" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white text-slate-800 rounded-3xl w-full max-w-xs p-5 shadow-2xl space-y-4">
-      
-      <div class="flex justify-between items-center border-b border-slate-100 pb-2">
-        <span class="text-xs font-bold text-orange-500 uppercase tracking-wider flex items-center gap-1.5">
-          <i data-lucide="calculator" class="w-4 h-4"></i> Calculadora
+  <!-- Modal de Calculadora Básica Flotante -->
+  <div id="modal-calculadora" class="fixed inset-0 bg-black/40 backdrop-blur-[2px] z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900/95 border border-slate-700 rounded-2xl w-full max-w-xs p-4 shadow-2xl space-y-3 backdrop-blur-md">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+        <span class="text-xs font-bold text-indigo-400 uppercase tracking-wider flex items-center gap-1.5">
+          <i data-lucide="calculator" class="w-3.5 h-3.5"></i> Calculadora Auxiliar
         </span>
-        <button type="button" id="btn-cerrar-calculadora" class="text-slate-400 hover:text-slate-700 text-base font-bold px-2 py-1 rounded-lg">✕</button>
+        <button type="button" id="btn-cerrar-calculadora" class="text-slate-400 hover:text-white text-sm font-bold px-2 py-1 rounded-lg">✕</button>
       </div>
-
       <div>
-        <input type="text" id="calc-display" readonly class="w-full bg-transparent border-none text-right font-sans text-3xl font-light text-slate-800 tracking-wider focus:outline-none" value="0">
+        <input type="text" id="calc-display" readonly class="w-full bg-black border border-slate-800 rounded-xl px-3 py-2.5 text-right font-mono text-xl text-emerald-400 tracking-wider" value="0">
       </div>
-
-      <div class="grid grid-cols-4 gap-3 text-xl font-normal text-center">
-        <!-- Fila 1 -->
-        <button type="button" data-val="C" class="calc-btn text-orange-500 hover:bg-orange-50 p-3 rounded-2xl transition">C</button>
-        <button type="button" data-val="BACKSPACE" class="calc-btn text-orange-500 hover:bg-orange-50 p-3 rounded-2xl transition flex items-center justify-center">
-          <i data-lucide="delete" class="w-6 h-6"></i>
-        </button>
-        <button type="button" data-val="%" class="calc-btn text-orange-500 hover:bg-orange-50 p-3 rounded-2xl transition">%</button>
-        <button type="button" data-val="/" class="calc-btn text-orange-500 hover:bg-orange-50 p-3 rounded-2xl transition">÷</button>
+      <div class="grid grid-cols-4 gap-1.5 text-sm font-semibold">
+        <button type="button" data-val="C" class="calc-btn bg-rose-600/80 hover:bg-rose-600 text-white p-2 rounded-xl">C</button>
+        <button type="button" data-val="(" class="calc-btn bg-slate-800 hover:bg-slate-700 text-slate-300 p-2 rounded-xl">(</button>
+        <button type="button" data-val=")" class="calc-btn bg-slate-800 hover:bg-slate-700 text-slate-300 p-2 rounded-xl">)</button>
+        <button type="button" data-val="/" class="calc-btn bg-indigo-600 hover:bg-indigo-700 text-white p-2 rounded-xl">÷</button>
         
-        <!-- Fila 2 -->
-        <button type="button" data-val="7" class="calc-btn text-slate-700 hover:bg-slate-100 p-3 rounded-2xl transition">7</button>
-        <button type="button" data-val="8" class="calc-btn text-slate-700 hover:bg-slate-100 p-3 rounded-2xl transition">8</button>
-        <button type="button" data-val="9" class="calc-btn text-slate-700 hover:bg-slate-100 p-3 rounded-2xl transition">9</button>
-        <button type="button" data-val="*" class="calc-btn text-orange-500 hover:bg-orange-50 p-3 rounded-2xl transition">×</button>
+        <button type="button" data-val="7" class="calc-btn bg-slate-800 hover:bg-slate-700 text-white p-2.5 rounded-xl">7</button>
+        <button type="button" data-val="8" class="calc-btn bg-slate-800 hover:bg-slate-700 text-white p-2.5 rounded-xl">8</button>
+        <button type="button" data-val="9" class="calc-btn bg-slate-800 hover:bg-slate-700 text-white p-2.5 rounded-xl">9</button>
+        <button type="button" data-val="*" class="calc-btn bg-indigo-600 hover:bg-indigo-700 text-white p-2.5 rounded-xl">×</button>
         
-        <!-- Fila 3 -->
-        <button type="button" data-val="4" class="calc-btn text-slate-700 hover:bg-slate-100 p-3 rounded-2xl transition">4</button>
-        <button type="button" data-val="5" class="calc-btn text-slate-700 hover:bg-slate-100 p-3 rounded-2xl transition">5</button>
-        <button type="button" data-val="6" class="calc-btn text-slate-700 hover:bg-slate-100 p-3 rounded-2xl transition">6</button>
-        <button type="button" data-val="-" class="calc-btn text-orange-500 hover:bg-orange-50 p-3 rounded-2xl transition">−</button>
+        <button type="button" data-val="4" class="calc-btn bg-slate-800 hover:bg-slate-700 text-white p-2.5 rounded-xl">4</button>
+        <button type="button" data-val="5" class="calc-btn bg-slate-800 hover:bg-slate-700 text-white p-2.5 rounded-xl">5</button>
+        <button type="button" data-val="6" class="calc-btn bg-slate-800 hover:bg-slate-700 text-white p-2.5 rounded-xl">6</button>
+        <button type="button" data-val="-" class="calc-btn bg-indigo-600 hover:bg-indigo-700 text-white p-2.5 rounded-xl">-</button>
         
-        <!-- Fila 4 -->
-        <button type="button" data-val="1" class="calc-btn text-slate-700 hover:bg-slate-100 p-3 rounded-2xl transition">1</button>
-        <button type="button" data-val="2" class="calc-btn text-slate-700 hover:bg-slate-100 p-3 rounded-2xl transition">2</button>
-        <button type="button" data-val="3" class="calc-btn text-slate-700 hover:bg-slate-100 p-3 rounded-2xl transition">3</button>
-        <button type="button" data-val="+" class="calc-btn text-orange-500 hover:bg-orange-50 p-3 rounded-2xl transition">+</button>
+        <button type="button" data-val="1" class="calc-btn bg-slate-800 hover:bg-slate-700 text-white p-2.5 rounded-xl">1</button>
+        <button type="button" data-val="2" class="calc-btn bg-slate-800 hover:bg-slate-700 text-white p-2.5 rounded-xl">2</button>
+        <button type="button" data-val="3" class="calc-btn bg-slate-800 hover:bg-slate-700 text-white p-2.5 rounded-xl">3</button>
+        <button type="button" data-val="+" class="calc-btn bg-indigo-600 hover:bg-indigo-700 text-white p-2.5 rounded-xl">+</button>
         
-        <!-- Fila 5 -->
-        <button type="button" class="calc-btn text-slate-300 cursor-default p-3 rounded-2xl"></button>
-        <button type="button" data-val="0" class="calc-btn text-slate-700 hover:bg-slate-100 p-3 rounded-2xl transition">0</button>
-        <button type="button" data-val="," class="calc-btn text-slate-700 hover:bg-slate-100 p-3 rounded-2xl transition font-bold">,</button>
-        <button type="button" data-val="=" class="calc-btn bg-orange-500 hover:bg-orange-600 text-white p-3 rounded-full transition font-semibold flex items-center justify-center shadow-lg shadow-orange-500/30">=</button>
+        <button type="button" data-val="0" class="calc-btn bg-slate-800 hover:bg-slate-700 text-white p-2.5 rounded-xl col-span-2">0</button>
+        <button type="button" data-val="." class="calc-btn bg-slate-800 hover:bg-slate-700 text-white p-2.5 rounded-xl">.</button>
+        <button type="button" data-val="=" class="calc-btn bg-emerald-600 hover:bg-emerald-700 text-white p-2.5 rounded-xl">=</button>
       </div>
-
     </div>
   </div>
 
