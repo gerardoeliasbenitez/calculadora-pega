@@ -43,6 +43,12 @@
       background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 50%, #f0f9ff 100%);
       color: #334155;
     }
+    .logo-blend-dark {
+      mix-blend-mode: lighten;
+    }
+    :root:not(.dark) .logo-blend-dark {
+      mix-blend-mode: multiply;
+    }
   </style>
 </head>
 <body class="font-sans antialiased p-4 sm:p-6 min-h-screen">
@@ -52,13 +58,11 @@
     <!-- Encabezado -->
     <header class="flex justify-between items-center bg-white/80 dark:bg-slate-800/90 border border-indigo-100 dark:border-slate-700 p-4 rounded-2xl shadow-sm backdrop-blur-md">
       <div class="flex items-center gap-3">
-        <!-- Logo cargado directamente desde logo.png -->
-        <div class="w-12 h-12 flex items-center justify-center overflow-hidden flex-shrink-0 rounded-xl">
-          <img src="logo.png" alt="Logo Calculadora" id="app-logo" class="w-full h-full object-contain">
+        <div class="w-12 h-12 flex items-center justify-center overflow-hidden flex-shrink-0">
+          <img src="logo.png" alt="Logo Calculadora" id="app-logo" class="w-full h-full object-contain logo-blend-dark" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%236366f1\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><rect x=\'4\' y=\'2\' width=\'16\' height=\'20\' rx=\'2\'/><line x1=\'8\' y1=\'6\' x2=\'16\' y2=\'6\'/><line x1=\'16\' y1=\'14\' x2=\'16\' y2=\'18\'/><path d=\'M16 10h.01\'/><path d=\'M12 10h.01\'/><path d=\'M8 10h.01\'/><path d=\'M8 14h.01\'/><path d=\'M12 18h.01\'/><path d=\'M8 18h.01\'/></svg>';">
         </div>
         <div>
           <h1 class="text-xl font-bold text-indigo-900 dark:text-indigo-300 leading-tight">Calculadora de Precio</h1>
-          <p class="text-xs text-indigo-500 dark:text-slate-400">Impresión en Plotter</p>
         </div>
       </div>
 
@@ -76,10 +80,12 @@
     <!-- Formulario: Datos de Cotización -->
     <form id="form-cotizacion" class="bg-white/80 dark:bg-slate-800/90 border border-indigo-100 dark:border-slate-700 p-5 sm:p-6 rounded-2xl shadow-sm space-y-4 backdrop-blur-md">
 
+      <input type="hidden" id="edit-id" value="">
+
       <div class="flex items-center justify-between border-b border-indigo-100 dark:border-slate-700 pb-2">
         <div class="flex items-center gap-2 text-indigo-700 dark:text-indigo-400 font-semibold text-sm tracking-wider uppercase">
           <i data-lucide="folder-plus" class="w-4 h-4"></i>
-          <span>Datos de la Cotización</span>
+          <span id="form-titulo-legend">Datos de la Cotización</span>
         </div>
 
         <div class="bg-indigo-100/70 dark:bg-slate-900 border border-indigo-200 dark:border-indigo-500/30 px-3 py-1 rounded-xl flex items-center gap-1.5">
@@ -158,7 +164,7 @@
       </div>
 
       <div class="pt-2">
-        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl shadow-md transition flex justify-center items-center gap-2 text-sm">
+        <button type="submit" id="btn-submit-form" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl shadow-md transition flex justify-center items-center gap-2 text-sm">
           <i data-lucide="save" class="w-5 h-5"></i>
           Calcular y Guardar Registro
         </button>
@@ -175,7 +181,6 @@
         </div>
 
         <div class="flex items-center gap-2">
-          <!-- Tasas BCV -->
           <div class="bg-slate-900 border border-slate-700/80 px-2.5 py-1 rounded-xl flex items-center gap-2 text-[11px] shadow-inner">
             <span class="text-slate-400 font-semibold">Tasas BCV:</span>
             <div class="flex items-center gap-2 font-mono font-bold">
@@ -185,7 +190,6 @@
             </div>
           </div>
 
-          <!-- Botón Calculadora Flotante 2x2 -->
           <button type="button" id="btn-abrir-calculadora" title="Calculadora Auxiliar" class="w-12 h-12 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full shadow-md transition flex flex-col items-center justify-center font-black text-base leading-none ring-2 ring-indigo-500/40 p-1 flex-shrink-0">
             <div class="flex gap-1.5 justify-center items-center">
               <span>+</span>
@@ -200,32 +204,26 @@
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-
         <div id="box-metros-cuadrados" class="bg-black border border-slate-800 p-3 rounded-xl shadow-inner text-white sm:col-span-2 text-center">
           <span class="block text-[12px] font-medium text-slate-400 uppercase tracking-tight">Total Metros Cuadrados Brutos (m²)</span>
           <span id="res-metros-cuadrados" class="text-xl font-bold text-emerald-400 font-mono">0,00 m²</span>
         </div>
-
         <div id="box-tiras-teoricas" class="bg-black border border-slate-800 p-3 rounded-xl shadow-inner text-white text-center">
           <span class="block text-[10px] font-medium text-slate-400 uppercase tracking-tight">Tiras Teóricas</span>
           <span id="res-tiras-teoricas" class="text-base font-bold text-white font-mono">0,00</span>
         </div>
-
         <div id="box-piezas-tiras" class="bg-black border border-slate-800 p-3 rounded-xl shadow-inner text-white text-center">
           <span class="block text-[10px] font-medium text-slate-400 uppercase tracking-tight">Cantidad de Tiras</span>
           <span id="res-piezas-tiras" class="text-base font-bold text-emerald-400 font-mono">0</span>
         </div>
-
         <div id="box-precio-bs-usd" class="bg-black border border-slate-800 p-3 rounded-xl shadow-inner text-white text-center">
           <span class="block text-[10px] font-medium text-slate-400 uppercase tracking-tight">Precio Total (Bs. USD)</span>
           <span id="res-precio-bs-usd" class="text-base font-bold text-white font-mono">Bs. 0,00</span>
         </div>
-
         <div id="box-precio-bs-eur" class="bg-black border border-slate-800 p-3 rounded-xl shadow-inner text-white text-center">
           <span class="block text-[10px] font-medium text-slate-400 uppercase tracking-tight">Precio Total (Bs. Euro)</span>
           <span id="res-precio-bs-eur" class="text-base font-bold text-white font-mono">Bs. 0,00</span>
         </div>
-
       </div>
 
       <div id="box-precio-usd" class="bg-emerald-600 p-3 rounded-xl shadow-md text-white text-center flex flex-col items-center justify-center">
@@ -248,8 +246,9 @@
           <i data-lucide="history" class="w-4 h-4"></i>
           <span>Consulta de Cotizaciones (Sincronizado)</span>
         </div>
-        <button id="btn-limpiar-historial" type="button" class="text-xs text-rose-500 hover:text-rose-600 font-medium flex items-center gap-1">
-          <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Borrar Historial Local
+        <!-- Botón global de eliminar toda la base de datos (ubicado en el círculo amarillo) -->
+        <button id="btn-borrar-todo-db" type="button" title="Eliminar todos los registros de la Base de Datos" class="p-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 border border-rose-500/30 rounded-xl transition flex items-center justify-center">
+          <i data-lucide="trash-2" class="w-4 h-4"></i>
         </button>
       </div>
 
@@ -272,12 +271,13 @@
               <th class="p-2.5 text-center">Tiras</th>
               <th class="p-2.5 text-right font-bold">Total ($)</th>
               <th class="p-2.5 text-right text-sky-600 dark:text-sky-400 font-bold">Total Bs. Euro</th>
-              <th class="p-2.5 rounded-r-lg text-center">Tasas BCV ($/€)</th>
+              <th class="p-2.5 text-center">Tasas BCV ($/€)</th>
+              <th class="p-2.5 rounded-r-lg text-center">Acciones</th>
             </tr>
           </thead>
           <tbody id="tabla-registros-body" class="divide-y divide-slate-100 dark:divide-slate-700/60">
             <tr>
-              <td colspan="9" class="text-center py-6 text-slate-400 italic">Cargando registros desde la nube...</td>
+              <td colspan="10" class="text-center py-6 text-slate-400 italic">Cargando registros desde la nube...</td>
             </tr>
           </tbody>
         </table>
