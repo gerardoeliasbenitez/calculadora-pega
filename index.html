@@ -43,13 +43,6 @@
       background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 50%, #f0f9ff 100%);
       color: #334155;
     }
-    /* Filtro para eliminar el fondo oscuro embebido en el logo PNG */
-    .logo-blend-dark {
-      mix-blend-mode: lighten;
-    }
-    :root:not(.dark) .logo-blend-dark {
-      mix-blend-mode: multiply;
-    }
   </style>
 </head>
 <body class="font-sans antialiased p-4 sm:p-6 min-h-screen">
@@ -59,9 +52,14 @@
     <!-- Encabezado -->
     <header class="flex justify-between items-center bg-white/80 dark:bg-slate-800/90 border border-indigo-100 dark:border-slate-700 p-4 rounded-2xl shadow-sm backdrop-blur-md">
       <div class="flex items-center gap-3">
-        <!-- Logo transparente integrado al fondo sin cuadros oscuros -->
-        <div class="w-12 h-12 flex items-center justify-center overflow-hidden flex-shrink-0">
-          <img src="logo.png" alt="Logo Calculadora" id="app-logo" class="w-full h-full object-contain logo-blend-dark" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%236366f1\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><rect x=\'4\' y=\'2\' width=\'16\' height=\'20\' rx=\'2\'/><line x1=\'8\' y1=\'6\' x2=\'16\' y2=\'6\'/><line x1=\'16\' y1=\'14\' x2=\'16\' y2=\'18\'/><path d=\'M16 10h.01\'/><path d=\'M12 10h.01\'/><path d=\'M8 10h.01\'/><path d=\'M8 14h.01\'/><path d=\'M12 18h.01\'/><path d=\'M8 18h.01\'/></svg>';">
+        <!-- Logo vectorial limpio 100% transparente sin fondo oscuro -->
+        <div class="w-12 h-12 bg-indigo-50/80 dark:bg-slate-900/60 rounded-2xl p-1 border border-indigo-200/60 dark:border-slate-700 flex items-center justify-center shadow-inner flex-shrink-0">
+          <svg class="w-full h-full text-indigo-600 dark:text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="10" cy="10" r="6"></circle>
+            <line x1="14.3" y1="14.3" x2="20" y2="20"></line>
+            <path d="M8 10h4"></path>
+            <path d="M10 8v4"></path>
+          </svg>
         </div>
         <div>
           <h1 class="text-xl font-bold text-indigo-900 dark:text-indigo-300 leading-tight">Calculadora de Precio</h1>
