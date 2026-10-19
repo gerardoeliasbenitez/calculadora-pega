@@ -52,8 +52,9 @@
     <!-- Encabezado -->
     <header class="flex justify-between items-center bg-white/80 dark:bg-slate-800/90 border border-indigo-100 dark:border-slate-700 p-4 rounded-2xl shadow-sm backdrop-blur-md">
       <div class="flex items-center gap-3">
-        <div class="w-12 h-12 bg-indigo-50 dark:bg-slate-900 rounded-xl p-1 border border-indigo-100 dark:border-slate-700 flex items-center justify-center overflow-hidden shadow-sm">
-          <img src="logo.jpg" alt="Logo Calculadora" id="app-logo" class="w-full h-full object-contain" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%236366f1\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><rect x=\'4\' y=\'2\' width=\'16\' height=\'20\' rx=\'2\'/><line x1=\'8\' y1=\'6\' x2=\'16\' y2=\'6\'/><line x1=\'16\' y1=\'14\' x2=\'16\' y2=\'18\'/><path d=\'M16 10h.01\'/><path d=\'M12 10h.01\'/><path d=\'M8 10h.01\'/><path d=\'M8 14h.01\'/><path d=\'M12 18h.01\'/><path d=\'M8 18h.01\'/></svg>';">
+        <!-- Contorno del logo 100% redondo -->
+        <div class="w-12 h-12 bg-indigo-50 dark:bg-slate-900 rounded-full p-2 border-2 border-indigo-200 dark:border-indigo-500/40 flex items-center justify-center overflow-hidden shadow-sm">
+          <img src="logo.png" alt="Logo Calculadora" id="app-logo" class="w-full h-full object-contain" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%236366f1\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><rect x=\'4\' y=\'2\' width=\'16\' height=\'20\' rx=\'2\'/><line x1=\'8\' y1=\'6\' x2=\'16\' y2=\'6\'/><line x1=\'16\' y1=\'14\' x2=\'16\' y2=\'18\'/><path d=\'M16 10h.01\'/><path d=\'M12 10h.01\'/><path d=\'M8 10h.01\'/><path d=\'M8 14h.01\'/><path d=\'M12 18h.01\'/><path d=\'M8 18h.01\'/></svg>';">
         </div>
         <div>
           <h1 class="text-xl font-bold text-indigo-900 dark:text-indigo-300">Calculadora de Precio</h1>
@@ -184,9 +185,16 @@
             </div>
           </div>
 
-          <!-- Icono Redondo Calculadora Flotante Agrandado -->
-          <button type="button" id="btn-abrir-calculadora" title="Calculadora Auxiliar" class="w-10 h-10 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full shadow-md transition flex items-center justify-center font-bold text-sm tracking-tighter ring-2 ring-indigo-500/40">
-            +−×÷
+          <!-- Icono Redondo Calculadora Flotante Agrandado y Organizado (2x2) -->
+          <button type="button" id="btn-abrir-calculadora" title="Calculadora Auxiliar" class="w-12 h-12 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full shadow-md transition flex flex-col items-center justify-center font-black text-base leading-none ring-2 ring-indigo-500/40 p-1">
+            <div class="flex gap-1.5 justify-center items-center">
+              <span>+</span>
+              <span>-</span>
+            </div>
+            <div class="flex gap-1.5 justify-center items-center mt-0.5">
+              <span>×</span>
+              <span>÷</span>
+            </div>
           </button>
         </div>
       </div>

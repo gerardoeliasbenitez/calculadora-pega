@@ -3,13 +3,13 @@
   "name": "Calculadora de Precio - Impresión en Plotter",
   "icons": [
     {
-      "src": "./logo.jpg",
-      "type": "image/jpeg",
+      "src": "./logo.png",
+      "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "./logo.jpg",
-      "type": "image/jpeg",
+      "src": "./logo.png",
+      "type": "image/png",
       "sizes": "512x512"
     }
   ],

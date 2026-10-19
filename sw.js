@@ -1,11 +1,11 @@
-const CACHE_NAME = 'pega-calc-v2026-v28';
+const CACHE_NAME = 'pega-calc-v2026-v31';
 const urlsToCache = [
   './',
   './index.html',
   './app.js',
   './supabase-config.js',
   './manifest.json',
-  './logo.jpg'
+  './logo.png'
 ];
 
 self.addEventListener('install', (e) => {

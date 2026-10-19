@@ -11,7 +11,7 @@ let tasaUSD_BCV = 36.50;
 let tasaEUR_BCV = 39.80;
 let siguienteCotizacionCodigo = 'COTZ-000001';
 
-// 🔧 CORRECCIÓN CRÍTICA DE PARSEO DE COMAS Y PUNTOS DECIMALES
+// 🔧 PARSEO BLINDADO DE COMAS Y PUNTOS DECIMALES
 function parsearFloatVE(valor) {
   if (!valor) return 0;
   let str = String(valor).trim();
@@ -119,8 +119,8 @@ async function actualizarTasasBCV() {
 
 // 📐 FÓRMULAS DE CÁLCULO
 function calcularCotizacion() {
-  const anchoMat = parsearFloatVE(document.getElementById('anchoMaterial')?.value); // Base del Diseño
-  const altoMat = parsearFloatVE(document.getElementById('altoMaterial')?.value);   // Altura del Diseño
+  const anchoMat = parsearFloatVE(document.getElementById('anchoMaterial')?.value);
+  const altoMat = parsearFloatVE(document.getElementById('altoMaterial')?.value);
   
   const selectPlotter = document.getElementById('anchoPlotter-select');
   const inputPlotter = document.getElementById('anchoPlotter-input');
@@ -131,30 +131,26 @@ function calcularCotizacion() {
     anchoPlotter = parsearFloatVE(inputPlotter.value);
   }
 
-  const precioM2 = parsearFloatVE(document.getElementById('costoMaterial')?.value); // Precio por M²
+  const precioM2 = parsearFloatVE(document.getElementById('costoMaterial')?.value);
 
   let tirasTeoricas = 0;
   let piezasPorTira = 0;
   let metrosLineales = 0;
   let areaM2 = 0;
 
-  // 1. Tiras Teóricas = Base del Diseño / Ancho del Plotter
   if (anchoPlotter > 0 && anchoMat > 0) {
     tirasTeoricas = anchoMat / anchoPlotter;
-    piezasPorTira = Math.ceil(tirasTeoricas); // Cantidad de Tiras / Piezas (redondeo al entero superior)
+    piezasPorTira = Math.ceil(tirasTeoricas);
   }
 
-  // 2. Metros Lineales = Cantidad de Tiras x Altura del Diseño
   if (piezasPorTira > 0 && altoMat > 0) {
     metrosLineales = piezasPorTira * altoMat;
   }
 
-  // 3. Total Metros Cuadrados Brutos = (Alto Material * Ancho Plotter) * Tiras / Piezas
   if (anchoPlotter > 0 && altoMat > 0 && piezasPorTira > 0) {
     areaM2 = (altoMat * anchoPlotter) * piezasPorTira;
   }
 
-  // 4. Presupuesto Total ($ USD) = Total Metros Cuadrados Brutos * Precio por M²
   const totalUSD = areaM2 * precioM2;
   const totalBsUSD = totalUSD * tasaUSD_BCV;
   const totalBsEUR = totalUSD * tasaEUR_BCV;
@@ -442,7 +438,7 @@ async function descargarCotizacionExcel() {
   window.URL.revokeObjectURL(url);
 }
 
-// 🧮 CALCULADORA AUXILIAR FLOTANTE
+// 🧮 CALCULADORA AUXILIAR FLOTANTE (CON MANEJO DE COMAS EN MÚLTIPLES NÚMEROS)
 function inicializarCalculadoraFlotante() {
   const btnAbrir = document.getElementById('btn-abrir-calculadora');
   const btnCerrar = document.getElementById('btn-cerrar-calculadora');
@@ -491,7 +487,10 @@ function inicializarCalculadoraFlotante() {
           expr = 'Error';
         }
       } else if (val === ',') {
-        if (!expr.includes(',')) {
+        // Separa la expresión por operadores para evaluar únicamente el número actual que se edita
+        const partes = expr.split(/[\+\-\*\/×÷]/);
+        const segmentoActual = partes[partes.length - 1];
+        if (!segmentoActual.includes(',')) {
           expr += ',';
         }
       } else {
