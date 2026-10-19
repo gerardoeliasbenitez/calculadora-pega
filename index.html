@@ -241,14 +241,15 @@
 
     <!-- Consulta de Cotizaciones con Sincronización en la Nube -->
     <section class="bg-white/80 dark:bg-slate-800/90 border border-indigo-100 dark:border-slate-700 p-5 sm:p-6 rounded-2xl shadow-sm space-y-4 backdrop-blur-md">
-      <div class="flex flex-wrap items-center justify-between gap-2 border-b border-indigo-100 dark:border-slate-700 pb-3">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-indigo-100 dark:border-slate-700 pb-3">
         <div class="flex items-center gap-2 text-indigo-700 dark:text-indigo-400 font-semibold text-sm tracking-wider uppercase">
           <i data-lucide="history" class="w-4 h-4"></i>
           <span>Consulta de Cotizaciones (Sincronizado)</span>
         </div>
-        <!-- Botón global de eliminar toda la base de datos (ubicado en el círculo amarillo) -->
-        <button id="btn-borrar-todo-db" type="button" title="Eliminar todos los registros de la Base de Datos" class="p-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 border border-rose-500/30 rounded-xl transition flex items-center justify-center">
+        <!-- Botón Borrar Datos Total -->
+        <button id="btn-borrar-todo-db" type="button" title="Borrar todos los registros de la Base de Datos" class="px-3 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 border border-rose-500/30 rounded-xl transition flex items-center gap-2 text-xs font-semibold w-fit">
           <i data-lucide="trash-2" class="w-4 h-4"></i>
+          <span>Borrar Datos Total</span>
         </button>
       </div>
 

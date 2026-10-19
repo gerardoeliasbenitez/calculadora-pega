@@ -262,7 +262,7 @@ async function renderizarTablaRegistros(filtro = '') {
   if (registros.length === 0) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="9" class="text-center py-6 text-slate-400 italic">No hay cotizaciones registradas en la nube.</td>
+        <td colspan="10" class="text-center py-6 text-slate-400 italic">No hay cotizaciones registradas en la nube.</td>
       </tr>
     `;
     return;
@@ -277,6 +277,7 @@ async function renderizarTablaRegistros(filtro = '') {
     const codigoCotizacion = r.nro_cotizacion || r.nroCotizacion || `COTZ-${String(r.id || 0).padStart(6, '0')}`;
     const tasaUsdVal = formatearNumeroVE(r.tasa_usd || r.tasaUSD || 0, 2);
     const tasaEurVal = formatearNumeroVE(r.tasa_eur || r.tasaEUR || 0, 2);
+    const registroId = r.id || r.nro_cotizacion || r.nroCotizacion;
 
     return `
       <tr class="hover:bg-indigo-50/50 dark:hover:bg-slate-700/40 transition-colors">
@@ -295,10 +296,80 @@ async function renderizarTablaRegistros(filtro = '') {
           <span class="text-emerald-400">$ ${tasaUsdVal}</span><br>
           <span class="text-indigo-400">€ ${tasaEurVal}</span>
         </td>
+        <td class="p-2.5 text-center whitespace-nowrap">
+          <div class="flex items-center justify-center gap-1.5">
+            <button type="button" onclick="window.editarRegistro('${registroId}')" title="Editar Registro" class="p-1.5 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-500 rounded-lg transition">
+              <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+            </button>
+            <button type="button" onclick="window.eliminarRegistro('${registroId}')" title="Eliminar Registro" class="p-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 rounded-lg transition">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        </td>
       </tr>
     `;
   }).join('');
+
+  if (window.lucide) lucide.createIcons();
 }
+
+window.editarRegistro = async function(id) {
+  try {
+    const registrosCloud = await sincronizarDesdeCloud();
+    let reg = registrosCloud.find(item => String(item.id) === String(id) || String(item.nro_cotizacion) === String(id) || String(item.nroCotizacion) === String(id));
+    
+    if (!reg) {
+      reg = await db.cotizaciones.where('id').equals(Number(id)).first() || await db.cotizaciones.where('nroCotizacion').equals(String(id)).first();
+    }
+
+    if (!reg) {
+      alert('⚠️ No se encontró el registro para editar.');
+      return;
+    }
+
+    document.getElementById('edit-id').value = reg.id || id;
+    document.getElementById('numero-cotizacion-display').textContent = reg.nro_cotizacion || reg.nroCotizacion;
+    document.getElementById('form-titulo-legend').textContent = `Editando Cotización: ${reg.nro_cotizacion || reg.nroCotizacion}`;
+    document.getElementById('btn-submit-form').innerHTML = '<i data-lucide="refresh-cw" class="w-5 h-5"></i> Actualizar Cotización';
+
+    const clienteSel = document.getElementById('cliente-select');
+    if (clienteSel) clienteSel.value = reg.cliente || '';
+
+    const proyectoSel = document.getElementById('proyecto-select');
+    if (proyectoSel) proyectoSel.value = reg.proyecto || '';
+
+    const materialSel = document.getElementById('material-select');
+    if (materialSel) materialSel.value = reg.material || '';
+
+    document.getElementById('anchoMaterial').value = formatearNumeroVE(reg.ancho_material || reg.anchoMaterial || 0, 2);
+    document.getElementById('altoMaterial').value = formatearNumeroVE(reg.alto_material || reg.altoMaterial || 0, 2);
+    
+    const plotterSel = document.getElementById('anchoPlotter-select');
+    if (plotterSel) plotterSel.value = String(reg.ancho_plotter || reg.anchoPlotter || 1.37);
+
+    document.getElementById('costoMaterial').value = formatearNumeroVE(reg.costo_material || reg.costoMaterial || 0, 2);
+
+    calcularCotizacion();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (window.lucide) lucide.createIcons();
+  } catch (err) {
+    console.error('Error al cargar registro para edición:', err);
+  }
+};
+
+window.eliminarRegistro = async function(id) {
+  if (!confirm(`¿Estás seguro de eliminar este registro de la Base de Datos?`)) return;
+
+  try {
+    await supabase.from('cotizaciones').delete().eq('id', id);
+    await db.cotizaciones.where('id').equals(Number(id)).delete();
+    await renderizarTablaRegistros();
+    alert('✅ Registro eliminado correctamente.');
+  } catch (err) {
+    console.error('Error al eliminar registro:', err);
+    alert('⚠️ Ocurrió un error al eliminar el registro.');
+  }
+};
 
 async function descargarCotizacionExcel() {
   if (typeof ExcelJS === 'undefined') {
@@ -530,12 +601,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       e.preventDefault();
       const resultados = calcularCotizacion();
 
+      const editId = document.getElementById('edit-id').value;
       const clienteVal = await obtenerValorCampoYGuardar('cliente');
       const proyectoVal = await obtenerValorCampoYGuardar('proyecto');
       const materialVal = await obtenerValorCampoYGuardar('material');
       const anchoPlotterVal = await obtenerValorCampoYGuardar('anchoPlotter');
 
-      const cotizacion = {
+      const cotizacionData = {
         nroCotizacion: siguienteCotizacionCodigo,
         cliente: clienteVal,
         proyecto: proyectoVal,
@@ -548,27 +620,63 @@ document.addEventListener('DOMContentLoaded', async () => {
         fecha: new Date().toISOString()
       };
 
-      await guardarCotizacionCloud(cotizacion);
-      await db.cotizaciones.add(cotizacion);
+      if (editId) {
+        await supabase.from('cotizaciones').update({
+          cliente: cotizacionData.cliente,
+          proyecto: cotizacionData.proyecto,
+          material: cotizacionData.material,
+          ancho_material: cotizacionData.anchoMat,
+          alto_material: cotizacionData.altoMat,
+          ancho_plotter: cotizacionData.anchoPlotter,
+          costo_material: cotizacionData.costoMaterial,
+          tiras_teoricas: cotizacionData.tirasTeoricas,
+          piezas_por_tira: cotizacionData.piezasPorTira,
+          total_usd: cotizacionData.totalUSD,
+          total_bs_usd: cotizacionData.totalBsUSD,
+          total_bs_eur: cotizacionData.totalBsEUR
+        }).eq('id', editId);
+
+        await db.cotizaciones.update(Number(editId), cotizacionData);
+        alert(`✅ Cotización actualizada correctamente.`);
+      } else {
+        await guardarCotizacionCloud(cotizacionData);
+        await db.cotizaciones.add(cotizacionData);
+        alert(`✅ Cotización ${cotizacionData.nroCotizacion} guardada y sincronizada en la nube correctamente`);
+      }
+
+      formCotizador.reset();
+      document.getElementById('edit-id').value = '';
+      document.getElementById('form-titulo-legend').textContent = 'Datos de la Cotización';
+      document.getElementById('btn-submit-form').innerHTML = '<i data-lucide="save" class="w-5 h-5"></i> Calcular y Guardar Registro';
       
       await renderizarTablaRegistros();
       await obtenerSiguienteNumeroCotizacion();
-      alert(`✅ Cotización ${cotizacion.nroCotizacion} guardada y sincronizada en la nube correctamente`);
     });
   }
 
   document.getElementById('btn-export-excel')?.addEventListener('click', descargarCotizacionExcel);
 
-  document.getElementById('btn-limpiar-historial')?.addEventListener('click', async () => {
-    if (confirm('¿Deseas limpiar tu historial local? (Los datos en la nube de Supabase se mantienen seguros).')) {
-      await db.cotizaciones.clear();
-      await renderizarTablaRegistros();
-      await obtenerSiguienteNumeroCotizacion();
+  // Funcionalidad Borrar Datos Total con confirmación previa
+  document.getElementById('btn-borrar-todo-db')?.addEventListener('click', async () => {
+    if (confirm('⚠️ ¿Estás completamente seguro de borrar TODOS los datos de la Base de Datos? Esta acción eliminará todo el historial local y de la nube.')) {
+      try {
+        await supabase.from('cotizaciones').delete().neq('id', 0);
+        await db.cotizaciones.clear();
+        await renderizarTablaRegistros();
+        await obtenerSiguienteNumeroCotizacion();
+        alert('✅ Todos los datos han sido borrados de la Base de Datos correctamente.');
+      } catch (err) {
+        console.error('Error al borrar todos los datos:', err);
+        alert('⚠️ Ocurrió un error al intentar borrar los registros.');
+      }
     }
   });
 
   document.getElementById('btn-nuevo')?.addEventListener('click', async () => {
     formCotizador?.reset();
+    document.getElementById('edit-id').value = '';
+    document.getElementById('form-titulo-legend').textContent = 'Datos de la Cotización';
+    document.getElementById('btn-submit-form').innerHTML = '<i data-lucide="save" class="w-5 h-5"></i> Calcular y Guardar Registro';
     await obtenerSiguienteNumeroCotizacion();
     calcularCotizacion();
   });
