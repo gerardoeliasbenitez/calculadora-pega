@@ -251,18 +251,18 @@ async function renderizarTablaRegistros(filtro = '') {
 
   if (filtro) {
     const term = filtro.toLowerCase();
-    registros = registros.filter(r => 
-      (r.cliente && r.cliente.toLowerCase().includes(term)) ||
-      (r.proyecto && r.proyecto.toLowerCase().includes(term)) ||
-      (r.nro_cotizacion && r.nro_cotizacion.toLowerCase().includes(term)) ||
-      (r.nroCotizacion && r.nroCotizacion.toLowerCase().includes(term))
-    );
+    // Búsqueda operativa exclusiva por N° de Cotización o Cliente
+    registros = registros.filter(r => {
+      const codigoCotizacion = (r.nro_cotizacion || r.nroCotizacion || `COTZ-${String(r.id || 0).padStart(6, '0')}`).toLowerCase();
+      const clienteNombre = (r.cliente || '').toLowerCase();
+      return codigoCotizacion.includes(term) || clienteNombre.includes(term);
+    });
   }
 
   if (registros.length === 0) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="10" class="text-center py-6 text-slate-400 italic">No hay cotizaciones registradas en la nube.</td>
+        <td colspan="10" class="text-center py-6 text-slate-400 italic">No hay cotizaciones registradas que coincidan con la búsqueda.</td>
       </tr>
     `;
     return;
