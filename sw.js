@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pega-calc-v2026-v32';
+const CACHE_NAME = 'pega-calc-v2026-v34';
 const urlsToCache = [
   './',
   './index.html',

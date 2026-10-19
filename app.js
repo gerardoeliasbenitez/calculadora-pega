@@ -11,7 +11,6 @@ let tasaUSD_BCV = 36.50;
 let tasaEUR_BCV = 39.80;
 let siguienteCotizacionCodigo = 'COTZ-000001';
 
-// 🔧 PARSEO BLINDADO DE COMAS Y PUNTOS DECIMALES
 function parsearFloatVE(valor) {
   if (!valor) return 0;
   let str = String(valor).trim();
@@ -117,7 +116,6 @@ async function actualizarTasasBCV() {
   calcularCotizacion();
 }
 
-// 📐 FÓRMULAS DE CÁLCULO
 function calcularCotizacion() {
   const anchoMat = parsearFloatVE(document.getElementById('anchoMaterial')?.value);
   const altoMat = parsearFloatVE(document.getElementById('altoMaterial')?.value);
@@ -277,6 +275,8 @@ async function renderizarTablaRegistros(filtro = '') {
     }) : 'N/A';
 
     const codigoCotizacion = r.nro_cotizacion || r.nroCotizacion || `COTZ-${String(r.id || 0).padStart(6, '0')}`;
+    const tasaUsdVal = formatearNumeroVE(r.tasa_usd || r.tasaUSD || 0, 2);
+    const tasaEurVal = formatearNumeroVE(r.tasa_eur || r.tasaEUR || 0, 2);
 
     return `
       <tr class="hover:bg-indigo-50/50 dark:hover:bg-slate-700/40 transition-colors">
@@ -291,15 +291,15 @@ async function renderizarTablaRegistros(filtro = '') {
         <td class="p-2.5 text-center font-bold text-indigo-600 dark:text-indigo-400">${r.piezas_por_tira || r.piezasPorTira || 0}</td>
         <td class="p-2.5 text-right font-bold text-slate-800 dark:text-slate-100">$ ${formatearNumeroVE(r.total_usd || r.totalUSD || 0, 2)}</td>
         <td class="p-2.5 text-right font-bold text-sky-600 dark:text-sky-400">Bs. ${formatearNumeroVE(r.total_bs_eur || r.totalBsEUR || 0, 2)}</td>
-        <td class="p-2.5 text-center font-mono text-[11px] text-slate-400">
-          $ ${formatearNumeroVE(r.tasa_usd || r.tasaUSD || 0, 2)} / € ${formatearNumeroVE(r.tasa_eur || r.tasaEUR || 0, 2)}
+        <td class="p-2.5 text-center font-mono text-[11px] text-slate-400 whitespace-nowrap">
+          <span class="text-emerald-400">$ ${tasaUsdVal}</span><br>
+          <span class="text-indigo-400">€ ${tasaEurVal}</span>
         </td>
       </tr>
     `;
   }).join('');
 }
 
-// 📊 EXPORTACIÓN A EXCEL
 async function descargarCotizacionExcel() {
   if (typeof ExcelJS === 'undefined') {
     alert('⚠️ La librería ExcelJS no está cargada correctamente.');
@@ -438,7 +438,6 @@ async function descargarCotizacionExcel() {
   window.URL.revokeObjectURL(url);
 }
 
-// 🧮 CALCULADORA AUXILIAR FLOTANTE (CON MANEJO DE COMAS EN MÚLTIPLES NÚMEROS)
 function inicializarCalculadoraFlotante() {
   const btnAbrir = document.getElementById('btn-abrir-calculadora');
   const btnCerrar = document.getElementById('btn-cerrar-calculadora');
@@ -487,7 +486,6 @@ function inicializarCalculadoraFlotante() {
           expr = 'Error';
         }
       } else if (val === ',') {
-        // Separa la expresión por operadores para evaluar únicamente el número actual que se edita
         const partes = expr.split(/[\+\-\*\/×÷]/);
         const segmentoActual = partes[partes.length - 1];
         if (!segmentoActual.includes(',')) {
